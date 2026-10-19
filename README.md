@@ -1,200 +1,219 @@
 # ParaBank AI QA Agent
 
-An automated QA test agent for the [ParaBank](https://parabank.parasoft.com/parabank) demo banking application, built in Python with **Playwright**, the **Page Object Model (POM)** and **OpenRouter AI**.
+**Automated UI testing with Python, Playwright, and AI-assisted failure analysis.**
 
-The project combines classic UI automation with AI-assisted failure analysis. Tests execute predefined scenarios, verify the expected results with assertions and generate execution reports.
+ParaBank AI QA Agent is a QA automation project built to validate the core workflows of the [ParaBank demo banking application](https://parabank.parasoft.com/parabank). It combines browser-based functional testing, the **Page Object Model (POM)**, structured reporting, and optional analysis of failed tests using **OpenRouter AI**.
 
-> **Important:** the AI never decides whether a test passed or failed. The test status is determined exclusively by programmatic assertions. The AI is used only to help analyze tests that did not pass and to summarize the run.
+The project focuses on two complementary activities: **reliable, assertion-driven testing** and **faster investigation of unexpected results**. Every test executes a defined scenario and checks its expected outcome in code. AI can provide additional context when a test fails, but it does **not** decide the test result.
 
-## What is tested
+## Highlights
 
-The project contains **10 independent test cases** covering the key functionality of ParaBank:
+- **10 automated scenarios** covering essential banking workflows and invalid inputs
+- **Positive and negative tests** with explicit expected outcomes
+- **Playwright browser automation** organized using the **Page Object Model**
+- **Programmatic assertions** for deterministic pass/fail decisions
+- **HTML and Markdown reports** with test durations, errors, and screenshots
+- **AI-assisted failure investigation** and an optional execution summary via OpenRouter
+- **Single-command execution** through `Agent.py`, including direct execution from PyCharm
 
-* User registration
-* User login
-* Opening a bank account
-* Funds transfer
-* Profile update
-* Validation of invalid user input
-* Empty login fields
-* Mismatched passwords
-* Invalid transfer amounts
+## Test coverage
 
-The full specification of every test case (preconditions, steps, expected result) is generated into:
+The suite covers registration, authentication, account management, funds transfers, profile changes, and input validation.
 
-`artifacts/TEST_CASES.md`
+| Test ID | Scenario | Type |
+| :-- | :-- | :-- |
+| TC-01 | Register a new user | Positive |
+| TC-02 | Log in with valid credentials | Positive |
+| TC-03 | Open a new savings account | Positive |
+| TC-04 | Transfer funds between owned accounts | Positive |
+| TC-05 | Update contact information | Positive |
+| TC-06 | Attempt login with an incorrect password | Negative |
+| TC-07 | Attempt login with empty fields | Negative |
+| TC-08 | Register with mismatched passwords | Negative |
+| TC-09 | Attempt to transfer a negative amount | Negative |
+| TC-10 | Attempt to transfer a non-numeric amount | Negative |
 
-## Sample report
+Detailed test case documentation, including preconditions, test steps, and expected results, is generated in `artifacts/TEST_CASES.md`.
 
-![Test execution report](docs/report.png)
+## Example test execution
 
-| ID | Title | Type | Status | Duration |
-|---|---|---|---|---|
-| TC-01 | Register a new user | Positive | ✅ PASSED | 10.5s |
-| TC-02 | Login with valid credentials | Positive | ✅ PASSED | 10.9s |
-| TC-03 | Open a new savings account | Positive | ✅ PASSED | 6.3s |
-| TC-04 | Transfer funds between own accounts | Positive | ✅ PASSED | 10.8s |
-| TC-05 | Update contact information | Positive | ✅ PASSED | 9.6s |
-| TC-06 | Login with a wrong password | Negative | ✅ PASSED | 7.9s |
-| TC-07 | Login with empty fields | Negative | ✅ PASSED | 7.9s |
-| TC-08 | Register with mismatched passwords | Negative | ✅ PASSED | 10.3s |
-| TC-09 | Transfer a negative amount | Negative | ❌ FAILED | 7.9s |
-| TC-10 | Transfer a non-numeric amount | Negative | ❌ FAILED | 14.5s |
+The following results are from a sample run, **not a live or continuously updated test status**.
 
-**Result of the sample run:** 10 tests, 8 passed, 2 failed (80% pass rate, 96.5s).
+| ID | Test case | Result | Duration |
+| :-- | :-- | :-- | --: |
+| TC-01 | Register a new user | ✅ Passed | 10.5 s |
+| TC-02 | Login with valid credentials | ✅ Passed | 10.9 s |
+| TC-03 | Open a new savings account | ✅ Passed | 6.3 s |
+| TC-04 | Transfer funds between own accounts | ✅ Passed | 10.8 s |
+| TC-05 | Update contact information | ✅ Passed | 9.6 s |
+| TC-06 | Login with a wrong password | ✅ Passed | 7.9 s |
+| TC-07 | Login with empty fields | ✅ Passed | 7.9 s |
+| TC-08 | Register with mismatched passwords | ✅ Passed | 10.3 s |
+| TC-09 | Transfer a negative amount | ❌ Failed | 7.9 s |
+| TC-10 | Transfer a non-numeric amount | ❌ Failed | 14.5 s |
 
-TC-09 and TC-10 failed because ParaBank accepted a transfer of a negative amount (-100) and did not show an error message for a non-numeric amount. These are findings about the application, not problems in the test code.
+**Sample summary: 10 executed · 8 passed · 2 failed · 80% pass rate · 96.5 s total**
 
-## AI analysis
+### Findings from the sample run
 
-When a test does not pass, the agent sends the error details to an AI model through **OpenRouter**.
+- **TC-09:** ParaBank appeared to accept a transfer with a negative amount (`-100`), contrary to the test's expected validation behavior.
+- **TC-10:** The application did not display the expected validation error for a non-numeric transfer amount.
 
-The AI analysis helps with:
+These failed assertions highlight **potential application validation defects**. They should be reproduced and investigated before being classified as confirmed product bugs; they do not, by themselves, prove a defect in either the application or the test implementation.
 
-* identifying the likely cause of the failure
-* classifying it as an application defect, a test script issue or an environment issue
-* suggesting a next step for investigation
-* writing a short executive summary of the whole run
+<!-- Uncomment this line if docs/report.png exists in the repository: -->
+<!-- ![Example HTML test report](docs/report.png) -->
 
-The AI functionality is optional. **The tests run without an OpenRouter API key as well.**
+## AI-assisted analysis
 
-## Technologies
+When a test fails, the framework can send the relevant failure details to a model through the **OpenRouter API**. The AI output supports investigation by:
 
-* **Python**
-* **Playwright**
-* **OpenRouter API**
-* **Page Object Model (POM)**
-* **Plain Python assertions** (deterministic pass/fail)
-* **Markdown and HTML reports**
-* **Screenshot after every test**
-* **Environment variables**
+1. Explaining plausible causes of the observed failure.
+2. Suggesting whether the issue is more likely related to **application behavior**, **test implementation**, or the **execution environment**.
+3. Recommending concrete next steps to reproduce or diagnose the issue.
+4. Producing a concise summary of the overall execution.
+
+> **AI is advisory, not authoritative.** A test passes or fails solely according to its programmed assertions. AI-generated classifications are hypotheses that must be verified.
+
+**OpenRouter is optional:** all functional tests can run without an API key.
+
+## Technology stack
+
+| Technology / technique | Purpose |
+| :-- | :-- |
+| **Python** | Test logic, orchestration, and reporting |
+| **Playwright** | Browser automation and UI interactions |
+| **Page Object Model (POM)** | Reusable page-specific actions and locators |
+| **Python assertions** | Deterministic result verification |
+| **OpenRouter API** | Optional AI-assisted failure analysis |
+| **HTML / Markdown** | Human-readable test documentation and reports |
+| **Screenshots** | Visual evidence of test outcomes |
+| **Environment variables** | Configuration of optional API credentials |
 
 ## Project structure
 
 ```text
-parabank_ai_qa/
-│
-├── Agent.py                    # Single entry point (PyCharm Run button)
-├── .env                        # OPENROUTER_API_KEY (not part of the repository)
-├── requirements.txt
-│
+ParaBank-AI-QA/
+├── Agent.py                       # Main entry point for test execution
 ├── config/
-│   └── settings.py             # Settings dataclass (URL, model, headless, paths)
-│
-├── ai/
-│   └── ai_assistant.py         # AIAssistant: wraps OpenRouter (failure analysis, run summary)
-│
+│   └── settings.py                # URL, browser, AI model, output paths
 ├── core/
-│   ├── browser_manager.py      # One browser, one context, one page; always closed
-│   └── test_runner.py          # TestRunner: executes cases, screenshot after every test
-│
-├── pages/                      # Page Object Model
+│   ├── browser_manager.py         # Browser lifecycle and session handling
+│   └── test_runner.py             # Runs tests and captures evidence
+├── pages/                         # Page Object Model classes
 │   ├── base_page.py
 │   ├── login_page.py
 │   ├── register_page.py
 │   ├── open_account_page.py
 │   ├── transfer_funds_page.py
 │   └── update_profile_page.py
-│
 ├── tests/
-│   └── test_cases.py           # TestCase dataclass + 10 test definitions
-│
+│   └── test_cases.py              # TestCase definitions and 10 scenarios
+├── ai/
+│   └── ai_assistant.py            # OpenRouter integration and AI analysis
 ├── reporting/
-│   └── report_writer.py        # Writes TEST_CASES.md, TEST_REPORT.md and TEST_REPORT.html
-│
-├── docs/
-│   └── report.png              # Sample report screenshot used in this README
-│
-└── artifacts/
+│   └── report_writer.py           # Test case and result report generation
+└── artifacts/                     # Generated during execution
     ├── TEST_CASES.md
     ├── TEST_REPORT.md
     ├── TEST_REPORT.html
     └── screenshots/
 ```
 
-## Setup
+**Note:** The `artifacts/` directory represents generated output. An optional local `.env` file is not committed. If you add a report image, place it in `docs/report.png` and enable the image link above.
 
-Clone the repository:
+## Getting started
+
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/predragrujic/ParaBank-AI-QA.git
 cd ParaBank-AI-QA
 ```
 
-Install the required Python packages:
+### 2. Install Python dependencies
+
+Use an isolated virtual environment (recommended):
+
+```bash
+python -m venv .venv
+```
+
+Activate it on Windows:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+Or on macOS / Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+Install the project's dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Install Chromium for Playwright:
+> **Repository check:** Ensure that `requirements.txt` has been committed before publishing these instructions. Without it, the installation command will not work.
+
+### 3. Install Playwright's Chromium browser
 
 ```bash
 playwright install chromium
 ```
 
-### OpenRouter API key
+### 4. Optional: configure OpenRouter
 
-The AI analysis is optional.
+To enable AI analysis, create a `.env` file in the project root:
 
-To use it, create a `.env` file in the project root:
-
-```env
-OPENROUTER_API_KEY=your_key_here
+```dotenv
+OPENROUTER_API_KEY=your_api_key_here
 ```
 
-The API key is never stored in the Git repository.
+Keep the API key private, and ensure `.env` is excluded from Git. You can skip this step to run the tests without AI analysis.
 
 ## Running the tests
 
-The project is started through the main `Agent.py` file:
+Start the test agent from the project directory:
 
 ```bash
 python Agent.py
 ```
 
-In PyCharm you can run it directly with the **Run** button on `Agent.py`.
+You can also open the project in **PyCharm** and run `Agent.py` directly.
 
-## Reports
+The runner executes the defined scenarios, records outcomes, captures screenshots, and generates execution reports. When an OpenRouter key is configured, it can additionally request AI-assisted failure analysis and a run summary.
 
-After the run, the results are saved in the `artifacts/` folder.
+## Generated reports
 
-The following files are generated:
+After execution, results are written to `artifacts/`:
 
-* `TEST_CASES.md` - overview of all test cases
-* `TEST_REPORT.md` - detailed result of every test, with screenshots
-* `TEST_REPORT.html` - self-contained report with embedded screenshots, opened automatically in the browser after the run
-* `screenshots/` - a screenshot taken after every test
+| Output | Description |
+| :-- | :-- |
+| `TEST_CASES.md` | Test specifications: preconditions, steps, expected results |
+| `TEST_REPORT.md` | Detailed outcomes and captured evidence |
+| `TEST_REPORT.html` | Standalone visual execution report with embedded screenshots |
+| `screenshots/` | Screenshot captured after each test |
 
-## QA approach
+The HTML report can be opened locally in a browser to inspect the run without additional reporting tools.
 
-The project is built around a few principles:
+## Design principles
 
-**Deterministic results**
-The test status is determined by assertions and expected results, not by the AI model.
+**Assertion-first QA.** Expected results are defined explicitly in the tests. AI suggestions never override the actual pass/fail outcome.
 
-**Page Object Model**
-UI interactions are separated from the test logic for better organization and maintainability.
+**Maintainable page objects.** Page-specific locators and UI actions are grouped into dedicated classes instead of repeated throughout test cases.
 
-**Independent tests**
-Every test starts from a clean session and registers its own user, so test cases can be executed individually.
+**Scenario independence.** Tests are designed to avoid relying on previous test outcomes and to create the user data they need. Session reset is used between tests; this is not the same as full browser-context isolation.
 
-**Failure evidence**
-A screenshot is saved after every test, and for failed tests the error message and page content are kept for further analysis.
+**Evidence-driven investigation.** Reports retain execution outcomes, error details, and screenshots so failures can be investigated and reproduced.
 
-**AI as a helper**
-The AI is used for failure analysis and the run summary, but it does not replace the core test logic.
+**Optional AI enhancement.** AI helps interpret failures, while the automation remains usable without an AI provider.
 
-## Project goal
+## Project purpose
 
-The goal of the project is to demonstrate the practical use of **UI test automation and AI tools in the QA process**, with a clear separation between deterministic testing and AI-assisted analysis.
+This project demonstrates a practical **QA automation workflow**: designing test cases, automating browser interactions, checking expected results, collecting execution evidence, and using AI to assist with failure triage.
 
-The project is a portfolio example of work with:
-
-* UI test automation
-* Page Object Model architecture
-* negative test scenarios
-* validation of user input
-* automated reporting
-* screenshots as test evidence
-* AI-assisted analysis of failed tests
+It is intended as a portfolio project showcasing **Python, Playwright, POM architecture, positive and negative testing, test reporting, and responsible use of AI in software testing**.
